@@ -6,18 +6,21 @@ This is a Go re-implementation of the [original Ruby version](https://github.com
 
 ## Installation
 
-### Users
+### Homebrew
 
-For now `unsavory` can only be installed via `go install`:
+```sh
+$ brew tap citizen428/homebrew-tap
+$ brew install unsavory
+```
+
+### Release
+
+Head over to the [release page](https://github.com/citizen428/unsavory/releases) and download the archive for your operating system/architecture.
+
+### Manual
 
 ```sh
 $ go install github.com/citizen428/unsavory...
-```
-
-### Developers
-
-```sh
-go get -u github.com/citizen428/unsavory...
 ```
 
 ## Options

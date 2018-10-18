@@ -9,8 +9,8 @@ import (
 )
 
 var (
-	dryRun = flag.Bool("dry-run", false, "Enables dry run mode")
-	token  = flag.String("token", "", "Pinboard API token")
+	dryRun bool
+	token  string
 )
 
 func init() {
@@ -21,14 +21,17 @@ func init() {
 	}
 
 	log.SetFlags(0)
+
+	flag.BoolVar(&dryRun, "dry-run", false, "Enables dry run mode")
+	flag.StringVar(&token, "token", "", "Pinboard API token")
 }
 
 func main() {
 	flag.Parse()
-	if *token == "" {
+	if token == "" {
 		log.Fatalln("Missing required API token")
 	}
 
-	un := un.NewClient(*token, *dryRun)
+	un := un.NewClient(token, dryRun)
 	un.Run()
 }

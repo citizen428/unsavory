@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"log"
+	"runtime"
 
 	un "github.com/citizen428/unsavory/internal/unsavory"
 )
@@ -13,6 +14,12 @@ var (
 )
 
 func init() {
+	if cpu := runtime.NumCPU(); cpu == 1 {
+		runtime.GOMAXPROCS(2)
+	} else {
+		runtime.GOMAXPROCS(cpu)
+	}
+
 	log.SetFlags(0)
 }
 

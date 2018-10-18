@@ -20,6 +20,18 @@ $ go install github.com/citizen428/unsavory...
 go get -u github.com/citizen428/unsavory...
 ```
 
+## Options
+
+```
+Usage of unsavory:
+  -dry-run
+    	Enables dry run mode
+  -proxy-url string
+    	HTTP proxy URL
+  -token string
+    	Pinboard API token
+```
+
 ## Usage
 
 Just start `unsavory` from the command line and provide the Pinboard API token from your [settings page](https://pinboard.in/settings/password).

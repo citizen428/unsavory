@@ -1,0 +1,41 @@
+builds:
+- env:
+  - CGO_ENABLED=0
+  main: ./cmd/unsavory/main.go
+  goos:
+    - darwin
+    - linux
+    - windows
+  goarch:
+    - i386
+    - amd64
+    - arm
+    - arm64
+  goarm:
+    - 6
+    - 7
+  ignore:
+    - goos: darwin
+      goarch: 386
+    - goos: darwin
+      goarch: arm
+    - goos: darwin
+      goarch: arm64
+    - goos: windows
+      goarch: 386
+    - goos: windows
+      goarch: arm
+    - goos: windows
+      goarch: arm64
+changelog:
+  sort: asc
+  filters:
+    exclude:
+    - '^docs:'
+    - '^test:'
+brew:
+  github:
+    owner: citizen428
+    name: homebrew-tap
+  homepage: "https://github.com/citizen428/unsavory"
+  description: "Removes outdated Pinboard bookmarks"

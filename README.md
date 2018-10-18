@@ -42,6 +42,15 @@ Retrieved 783 URLS
 ...
 ```
 
+### Proxy servers
+
+If a `HTTP_PROXY` environment variable is present, Go's HTTP client will automatically use it.
+Alternatively a proxy server can be specified via the `--proxy-url` option:
+
+```sh
+$ unsavory --token=user:NNNNNN --proxy-url=http://example.com:8080
+```
+
 ## Warning
 
 Any link that returns an HTTP status code of 404 will be deleted without warning. There's no undo,

@@ -17,6 +17,12 @@ $ brew install unsavory
 
 Head over to the [release page](https://github.com/citizen428/unsavory/releases) and download the archive for your operating system/architecture.
 
+### Docker
+
+```sh
+$ docker run --rm citizen428/unsavory -token=user:NNNNNN --dry-run
+```
+
 ### Manual
 
 ```sh

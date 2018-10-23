@@ -7,13 +7,15 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 )
 
 const (
-	baseURL   = "https://api.pinboard.in/v1"
-	userAgent = "UnsavoryNG"
+	baseURL     = "https://api.pinboard.in/v1"
+	userAgent   = "UnsavoryNG"
+	workerCount = 50
 )
 
 // Client bundles all values necessary for API requests.
@@ -25,16 +27,10 @@ type Client struct {
 	Token  string
 }
 
-type checkResponse struct {
-	URL        string
-	Status     string
-	StatusCode int
-}
-
 // NewClient returns a configured unsavory.Client.
 func NewClient(token string, dryRun bool) *Client {
 	client := &http.Client{
-		Timeout: time.Second * 10,
+		Timeout: time.Second * 5,
 	}
 
 	return &Client{
@@ -44,38 +40,20 @@ func NewClient(token string, dryRun bool) *Client {
 		client:    client}
 }
 
-// Run fetches all URLs, checks them individually and removes saved links return
-//  a 404 status code.
+// Run fetches all URLs and kicks of the check process.
 func (c *Client) Run() {
 	if c.DryRun {
 		log.Printf("You are using dry run mode. No links will be deleted!\n\n")
 	}
 
 	log.Println("Retrieving URLs")
-	urls := c.getAllURLs()
+	urls := c.getURLs()
+
 	log.Printf("Retrieved %d URLS\n", len(urls))
-
-	results := make(chan checkResponse)
-	for _, url := range urls {
-		go c.checkURL(url, results)
-	}
-
-	var result checkResponse
-	for range urls {
-		result = <-results
-		switch result.StatusCode {
-		case 200:
-			continue
-		case 404:
-			log.Printf("Deleting %s\n", result.URL)
-			c.deleteURL(result.URL)
-		default:
-			log.Printf("%s:%s\n", result.Status, result.URL)
-		}
-	}
+	c.checkURLs(urls)
 }
 
-func (c *Client) getAllURLs() []string {
+func (c *Client) getURLs() []string {
 	var posts []struct {
 		URL string `json:"href"`
 	}
@@ -89,7 +67,8 @@ func (c *Client) getAllURLs() []string {
 
 	json.NewDecoder(resp.Body).Decode(&posts)
 
-	urls := make([]string, len(posts))
+	count := len(posts)
+	urls := make([]string, count)
 
 	for i, post := range posts {
 		urls[i] = post.URL
@@ -97,13 +76,44 @@ func (c *Client) getAllURLs() []string {
 	return urls
 }
 
-func (c *Client) checkURL(url string, results chan<- checkResponse) {
-	resp, err := c.client.Head(url)
-	if err != nil {
-		results <- checkResponse{url, err.Error(), 0}
-		return
+func (c *Client) checkURLs(urls []string) {
+	ch := make(chan string)
+
+	for i := 0; i < workerCount; i++ {
+		go c.checkURL(ch)
 	}
-	results <- checkResponse{url, resp.Status, resp.StatusCode}
+
+	for _, url := range urls {
+		ch <- url
+	}
+	close(ch)
+}
+
+func (c *Client) checkURL(urls chan string) {
+	for {
+		u, ok := <-urls
+		if !ok {
+			return
+		}
+
+		resp, err := c.client.Head(u)
+		if err != nil {
+			if _, ok := err.(*url.Error); ok {
+				log.Printf("Deleting (no such host): %s\n", u)
+				c.deleteURL(u)
+			}
+		} else {
+			switch resp.StatusCode {
+			case http.StatusOK:
+				continue
+			case http.StatusNotFound, http.StatusGone:
+				log.Printf("Deleting (404): %s\n", u)
+				c.deleteURL(u)
+			default:
+				log.Printf("%d: %s\n", resp.StatusCode, u)
+			}
+		}
+	}
 }
 
 func (c *Client) deleteURL(url string) {

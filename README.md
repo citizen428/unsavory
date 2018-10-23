@@ -1,8 +1,9 @@
 # unsavory: get rid of those stale bookmarks!
 
-`unsavory` checks your Pinboard bookmarks for dead links (HTTP status code 404) and removes them.
-Additionally it will also inform you about links which return a status code other than 200 (OK).
+`unsavory` checks your [Pinboard](https://pinboard.in) bookmarks for dead links (HTTP status code 404) and removes them. Additionally it will also inform you about links which return a status code other than 200 (OK).
 This is a Go re-implementation of the [original Ruby version](https://github.com/citizen428/unsavory-legacy).
+
+If you wonder about the name, this program was originally written for [del.icio.us](https://en.wikipedia.org/wiki/Delicious_(website)) and I can't resist a bad pun.
 
 ## Installation
 

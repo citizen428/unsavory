@@ -4,11 +4,9 @@ package unsavory
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"net/url"
-	"strings"
 	"time"
 )
 
@@ -20,8 +18,7 @@ const (
 
 // Client bundles all values necessary for API requests.
 type Client struct {
-	baseQuery string
-	client    *http.Client
+	client *http.Client
 
 	DryRun bool
 	Token  string
@@ -34,10 +31,9 @@ func NewClient(token string, dryRun bool) *Client {
 	}
 
 	return &Client{
-		baseQuery: fmt.Sprintf("format=json&auth_token=%s", token),
-		Token:     token,
-		DryRun:    dryRun,
-		client:    client}
+		Token:  token,
+		DryRun: dryRun,
+		client: client}
 }
 
 // Run fetches all URLs and kicks off the check process.
@@ -99,36 +95,43 @@ func (c *Client) checkURLs(urls []string) {
 }
 
 func (c *Client) checkURL(u string) {
-		resp, err := c.client.Head(u)
-		if err != nil {
-			if _, ok := err.(*url.Error); ok {
-				log.Printf("Deleting (no such host): %s\n", u)
-				c.deleteURL(u)
-			}
-		} else {
-			switch resp.StatusCode {
-			case http.StatusNotFound, http.StatusGone:
-				log.Printf("Deleting (404): %s\n", u)
-				c.deleteURL(u)
-			default:
-				log.Printf("%d: %s\n", resp.StatusCode, u)
-			}
+	resp, err := c.client.Head(u)
+	if err != nil {
+		if _, ok := err.(*url.Error); ok {
+			log.Printf("Deleting (no such host): %s\n", u)
+			c.deleteURL(u)
+		}
+	} else {
+		switch resp.StatusCode {
+		case http.StatusNotFound, http.StatusGone:
+			log.Printf("Deleting (404): %s\n", u)
+			c.deleteURL(u)
+		default:
+			log.Printf("%d: %s\n", resp.StatusCode, u)
 		}
 	}
+}
 
 func (c *Client) deleteURL(url string) {
 	if !c.DryRun {
-		c.request("/posts/delete", fmt.Sprintf("url=%s", url))
+		c.request("/posts/delete", url)
 	}
 }
 
 func (c *Client) request(path string, query ...string) *http.Response {
-	url := fmt.Sprintf("%s%s?%s", baseURL, path, c.baseQuery)
-	if len(query) > 0 {
-		url = url + "&" + strings.Join(query, "&")
-	}
+	base, _ := url.Parse(baseURL)
+	base.Path += path
 
-	req, err := http.NewRequest("GET", url, nil)
+	// Query params
+	params := url.Values{}
+	params.Add("format", "json")
+	params.Add("auth_token", c.Token)
+	if len(query) > 0 {
+		params.Add("url", query[0])
+	}
+	base.RawQuery = params.Encode()
+
+	req, err := http.NewRequest("GET", base.String(), nil)
 	if err != nil {
 		log.Fatalln(err)
 	}

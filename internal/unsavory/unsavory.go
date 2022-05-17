@@ -61,7 +61,7 @@ func (c *Client) getURLs() []string {
 	resp := c.request("/posts/all")
 	defer resp.Body.Close()
 
-	if resp.StatusCode != 200 {
+	if resp.StatusCode != http.StatusOK {
 		log.Fatalln("Could not retrieve URLs!\nPlease check your API token.")
 	}
 

@@ -80,7 +80,16 @@ func (c *Client) checkURLs(urls []string) {
 	ch := make(chan string)
 
 	for i := 0; i < workerCount; i++ {
-		go c.checkURL(ch)
+		go func(urls chan string) {
+			for {
+				u, ok := <-urls
+				if !ok {
+					break
+				}
+
+				c.checkURL(u)
+			}
+		}(ch)
 	}
 
 	for _, url := range urls {
@@ -89,13 +98,7 @@ func (c *Client) checkURLs(urls []string) {
 	close(ch)
 }
 
-func (c *Client) checkURL(urls chan string) {
-	for {
-		u, ok := <-urls
-		if !ok {
-			return
-		}
-
+func (c *Client) checkURL(u string) {
 		resp, err := c.client.Head(u)
 		if err != nil {
 			if _, ok := err.(*url.Error); ok {
@@ -104,8 +107,6 @@ func (c *Client) checkURL(urls chan string) {
 			}
 		} else {
 			switch resp.StatusCode {
-			case http.StatusOK:
-				continue
 			case http.StatusNotFound, http.StatusGone:
 				log.Printf("Deleting (404): %s\n", u)
 				c.deleteURL(u)
@@ -114,7 +115,6 @@ func (c *Client) checkURL(urls chan string) {
 			}
 		}
 	}
-}
 
 func (c *Client) deleteURL(url string) {
 	if !c.DryRun {

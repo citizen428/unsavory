@@ -40,7 +40,7 @@ func NewClient(token string, dryRun bool) *Client {
 		client:    client}
 }
 
-// Run fetches all URLs and kicks of the check process.
+// Run fetches all URLs and kicks off the check process.
 func (c *Client) Run() {
 	if c.DryRun {
 		log.Printf("You are using dry run mode. No links will be deleted!\n\n")

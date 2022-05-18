@@ -103,8 +103,7 @@ func (c *Client) checkURL(u string) {
 	resp, err := c.client.Head(u)
 	if err != nil {
 		if _, ok := err.(*url.Error); ok {
-			log.Printf("Deleting (%v): %s\n", u, err)
-			c.deleteURL(u)
+			log.Printf("Error (%s): %s\n", u, err)
 		}
 	} else {
 		switch resp.StatusCode {

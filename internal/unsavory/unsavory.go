@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"sync"
 	"time"
 )
 
@@ -72,14 +73,17 @@ func (c *Client) getURLs() []string {
 }
 
 func (c *Client) checkURLs(urls []string) {
-	ch := make(chan string)
+	var wg sync.WaitGroup
+	wg.Add(workerCount)
 
+	ch := make(chan string)
 	for i := 0; i < workerCount; i++ {
 		go func(urls chan string) {
+			defer wg.Done()
 			for {
 				u, ok := <-urls
 				if !ok {
-					break
+					return
 				}
 
 				c.checkURL(u)
@@ -91,6 +95,8 @@ func (c *Client) checkURLs(urls []string) {
 		ch <- url
 	}
 	close(ch)
+
+	wg.Wait()
 }
 
 func (c *Client) checkURL(u string) {

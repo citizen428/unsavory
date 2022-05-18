@@ -13,3 +13,5 @@
 
 # GoReleaser
 dist/
+
+bin/

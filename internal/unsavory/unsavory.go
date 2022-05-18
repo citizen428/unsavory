@@ -107,6 +107,8 @@ func (c *Client) checkURL(u string) {
 		}
 	} else {
 		switch resp.StatusCode {
+		case http.StatusOK:
+			// do nothing
 		case http.StatusNotFound, http.StatusGone:
 			log.Printf("Deleting (404): %s\n", u)
 			c.deleteURL(u)

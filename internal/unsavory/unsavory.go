@@ -19,26 +19,25 @@ const (
 // Client bundles all values necessary for API requests.
 type Client struct {
 	client *http.Client
-
-	DryRun bool
-	Token  string
+	dryRun bool
+	token  string
 }
 
 // NewClient returns a configured unsavory.Client.
 func NewClient(token string, dryRun bool) *Client {
 	client := &http.Client{
-		Timeout: time.Second * 5,
+		Timeout: time.Second * 15,
 	}
 
 	return &Client{
-		Token:  token,
-		DryRun: dryRun,
+		token:  token,
+		dryRun: dryRun,
 		client: client}
 }
 
 // Run fetches all URLs and kicks off the check process.
 func (c *Client) Run() {
-	if c.DryRun {
+	if c.dryRun {
 		log.Printf("You are using dry run mode. No links will be deleted!\n\n")
 	}
 
@@ -98,7 +97,7 @@ func (c *Client) checkURL(u string) {
 	resp, err := c.client.Head(u)
 	if err != nil {
 		if _, ok := err.(*url.Error); ok {
-			log.Printf("Deleting (no such host): %s\n", u)
+			log.Printf("Deleting (%v): %s\n", u, err)
 			c.deleteURL(u)
 		}
 	} else {
@@ -113,7 +112,7 @@ func (c *Client) checkURL(u string) {
 }
 
 func (c *Client) deleteURL(url string) {
-	if !c.DryRun {
+	if !c.dryRun {
 		c.request("/posts/delete", url)
 	}
 }
@@ -125,7 +124,7 @@ func (c *Client) request(path string, query ...string) *http.Response {
 	// Query params
 	params := url.Values{}
 	params.Add("format", "json")
-	params.Add("auth_token", c.Token)
+	params.Add("auth_token", c.token)
 	if len(query) > 0 {
 		params.Add("url", query[0])
 	}

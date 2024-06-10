@@ -1,3 +1,3 @@
 module github.com/citizen428/unsavory
 
-go 1.18
+go 1.22

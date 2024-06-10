@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"net/url"
 	"sync"
-	"time"
 )
 
 const (
@@ -25,15 +24,12 @@ type Client struct {
 }
 
 // NewClient returns a configured unsavory.Client.
-func NewClient(token string, dryRun bool) *Client {
-	client := &http.Client{
-		Timeout: time.Second * 15,
-	}
-
+func NewClient(token string, dryRun bool, client *http.Client) *Client {
 	return &Client{
-		token:  token,
+		client: client,
 		dryRun: dryRun,
-		client: client}
+		token:  token,
+	}
 }
 
 // Run fetches all URLs and kicks off the check process.
@@ -61,7 +57,9 @@ func (c *Client) getURLs() []string {
 		log.Fatalln("Could not retrieve URLs!\nPlease check your API token.")
 	}
 
-	json.NewDecoder(resp.Body).Decode(&posts)
+	if err := json.NewDecoder(resp.Body).Decode(&posts); err != nil {
+		log.Fatalln("Cannot decode Pinboard JSON, aborting.")
+	}
 
 	count := len(posts)
 	urls := make([]string, count)

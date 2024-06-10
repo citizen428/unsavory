@@ -1,7 +1,7 @@
 PRG := unsavory
 
 run: build
-	@./bin/${PRG} --dry-run -token ${PINBOARD_TOKEN}
+	@./bin/${PRG} --dry-run ${PINBOARD_TOKEN}
 
 build:
 	@go build -o bin/${PRG} ./cmd/${PRG}

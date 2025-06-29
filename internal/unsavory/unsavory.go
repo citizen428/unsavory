@@ -75,7 +75,7 @@ func (c *Client) checkURLs(urls []string) {
 	wg.Add(workerCount)
 
 	ch := make(chan string)
-	for i := 0; i < workerCount; i++ {
+	for range workerCount {
 		go func(urls chan string) {
 			defer wg.Done()
 			for {

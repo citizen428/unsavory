@@ -76,10 +76,10 @@ func (c *Client) checkURLs(urls []string) {
 
 	ch := make(chan string)
 	for range workerCount {
-		go func(urls chan string) {
+		go func(urlCh chan string) {
 			defer wg.Done()
 			for {
-				u, ok := <-urls
+				u, ok := <-urlCh
 				if !ok {
 					return
 				}
